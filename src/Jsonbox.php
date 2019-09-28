@@ -15,8 +15,10 @@ class Jsonbox extends Collection
     /**
      * @param string $boxId
      * @param ClientInterface|null $client
+     *
+     * @return static
      */
-    public function __construct(string $boxId, ClientInterface $client = null)
+    public static function factory(string $boxId, ClientInterface $client = null): self
     {
         $client = $client ?? new Client([
             'base_uri' => 'https://jsonbox.io'
@@ -25,7 +27,7 @@ class Jsonbox extends Collection
         $crudClient = new CrudClient($client);
         $uri = new Uri($boxId);
 
-        parent::__construct($crudClient, $uri);
+        return new static($crudClient, $uri);
     }
 
     /**
