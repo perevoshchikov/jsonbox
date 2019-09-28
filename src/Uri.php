@@ -33,7 +33,7 @@ class Uri
      */
     public function getPath(): string
     {
-        return \implode('/', $this->path);
+        return '/' . \implode('/', $this->path);
     }
 
     /**
