@@ -5,6 +5,10 @@ namespace Anper\Jsonbox\Tests;
 use Anper\Jsonbox\Uri;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Class UriTest
+ * @package Anper\Jsonbox\Tests
+ */
 class UriTest extends TestCase
 {
     public function testSetAndGetPath(): void
