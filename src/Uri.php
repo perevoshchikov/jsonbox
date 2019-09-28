@@ -20,22 +20,12 @@ class Uri
 
     /**
      * @param string $path
+     * @param array $query
      */
-    public function __construct(string $path)
+    public function __construct(string $path, array $query = [])
     {
         $this->addPath($path);
-    }
-
-    /**
-     * @param string $path
-     *
-     * @return $this
-     */
-    public function addPath(string $path): self
-    {
-        $this->path[] = \trim($path, '/');
-
-        return $this;
+        $this->query = $query;
     }
 
     /**
@@ -47,11 +37,11 @@ class Uri
     }
 
     /**
-     * @return string
+     * @return array
      */
-    public function getQuery(): string
+    public function getQuery(): array
     {
-        return \http_build_query($this->query);
+        return $this->query;
     }
 
     /**
@@ -78,5 +68,17 @@ class Uri
         $clone->query = $query;
 
         return $clone;
+    }
+
+    /**
+     * @param string $path
+     *
+     * @return $this
+     */
+    protected function addPath(string $path): self
+    {
+        $this->path[] = \trim($path, '/');
+
+        return $this;
     }
 }
