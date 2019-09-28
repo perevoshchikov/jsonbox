@@ -5,7 +5,6 @@ namespace Anper\Jsonbox;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
-use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class Client
@@ -88,21 +87,17 @@ class Client
      * @return array
      * @throws Exception
      */
-    protected function send(string $method, Uri $uri, array $body = []): array
+    public function send(string $method, Uri $uri, array $body = []): array
     {
         $options = [
+            RequestOptions::QUERY   => $uri->getQuery(),
+            RequestOptions::JSON    => $body,
             RequestOptions::HEADERS => [
                 'Accept' => 'application/json',
             ],
         ];
 
-        if ($data) {
-            $options[RequestOptions::JSON] = $body;
-        }
-
-        if ($query = $uri->getQuery()) {
-            $options[RequestOptions::QUERY] = $query;
-        }
+        $options = \array_filter($options);
 
         try {
             $response = $this->client->request($method, $uri->getPath(), $options);
@@ -110,24 +105,10 @@ class Client
             throw new Exception($exception->getMessage(), 0, $exception);
         }
 
-        $this->assertJson($response);
-
-        return \json_decode($response->getBody(), true);
-    }
-
-    /**
-     * @param ResponseInterface $response
-     *
-     * @throws Exception
-     */
-    protected function assertJson(ResponseInterface $response): void
-    {
-        $header = $response->getHeaderLine('Content-Type');
-        $parts = \explode(';', $header);
-        $type = \mb_strtolower(\trim($parts[0] ?? ''));
-
-        if ($type !== 'application/json') {
-            throw new Exception("Expected json content type, given `$type`");
+        try {
+            return \GuzzleHttp\json_decode($response->getBody(), true);
+        } catch (\Exception $exception) {
+            throw new Exception($exception->getMessage(), 0, $exception);
         }
     }
 }
