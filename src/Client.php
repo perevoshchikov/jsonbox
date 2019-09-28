@@ -101,12 +101,12 @@ class Client
 
         try {
             $response = $this->client->request($method, $uri->getPath(), $options);
-        } catch (GuzzleException $exception) {
+        } catch (\Exception|GuzzleException $exception) {
             throw new Exception($exception->getMessage(), 0, $exception);
         }
 
         try {
-            return \GuzzleHttp\json_decode($response->getBody(), true);
+            return (array) \GuzzleHttp\json_decode($response->getBody(), true);
         } catch (\Exception $exception) {
             throw new Exception($exception->getMessage(), 0, $exception);
         }
