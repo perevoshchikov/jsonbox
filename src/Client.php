@@ -19,9 +19,17 @@ class Client
 
     /**
      * @param ClientInterface $client
+     *
+     * @throws Exception
      */
     public function __construct(ClientInterface $client)
     {
+        $baseUri = $client->getConfig('base_uri');
+
+        if (empty($baseUri)) {
+            throw new Exception('Config `base_uri` not found');
+        }
+
         $this->client = $client;
     }
 

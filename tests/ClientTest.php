@@ -17,10 +17,18 @@ class ClientTest extends TestCase
 {
     public function testSetAndGetGuzzleClient(): void
     {
-        $guzzle = $this->createMock(ClientInterface::class);
+        $guzzle = $this->getGuzzleClient();
         $client = new Client($guzzle);
 
         $this->assertEquals($client->getClient(), $guzzle);
+    }
+
+    public function testInvalidGuzzleClient(): void
+    {
+        $this->expectException(Exception::class);
+        $guzzle = $this->createMock(ClientInterface::class);
+
+        $client = new Client($guzzle);
     }
 
     public function testSend(): void
@@ -36,7 +44,7 @@ class ClientTest extends TestCase
             ->method('getBody')
             ->willReturn(\json_encode($data));
 
-        $guzzle = $this->createMock(ClientInterface::class);
+        $guzzle = $this->getGuzzleClient();
         $guzzle->expects($this->once())
             ->method('request')
             ->with($method, $uri->getPath(), $this->logicalAnd(
@@ -57,7 +65,7 @@ class ClientTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage($message);
 
-        $guzzle = $this->createMock(ClientInterface::class);
+        $guzzle = $this->getGuzzleClient();
         $guzzle->expects($this->once())
             ->method('request')
             ->willThrowException(new \Exception($message));
@@ -76,7 +84,7 @@ class ClientTest extends TestCase
             ->method('getBody')
             ->willReturn('');
 
-        $guzzle = $this->createMock(ClientInterface::class);
+        $guzzle = $this->getGuzzleClient();
         $guzzle->expects($this->once())
             ->method('request')
             ->willReturn($response);
@@ -84,5 +92,18 @@ class ClientTest extends TestCase
         $client = new Client($guzzle);
 
         $client->send('GET', new Uri('/'));
+    }
+
+    /**
+     * @return ClientInterface|\PHPUnit\Framework\MockObject\MockObject
+     */
+    protected function getGuzzleClient()
+    {
+        $guzzle = $this->createMock(ClientInterface::class);
+        $guzzle->expects($this->once())
+            ->method('getConfig')
+            ->willReturn(true);
+
+        return $guzzle;
     }
 }
