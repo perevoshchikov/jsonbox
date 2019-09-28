@@ -51,17 +51,6 @@ class Collection
     }
 
     /**
-     * @param Filter $filter
-     *
-     * @return array
-     * @throws Exception
-     */
-    public function delete(Filter $filter): array
-    {
-        return $this->client->delete($this->resolveUri($filter));
-    }
-
-    /**
      * @param Filter|null $filter
      *
      * @return Uri
