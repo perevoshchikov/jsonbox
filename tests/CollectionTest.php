@@ -5,6 +5,7 @@ namespace Anper\Jsonbox\Tests;
 use Anper\Jsonbox\Client;
 use Anper\Jsonbox\Collection;
 use Anper\Jsonbox\Filter;
+use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\UriInterface;
@@ -21,11 +22,7 @@ class CollectionTest extends TestCase
         $data = ['foo' => 'bar'];
         $uri = $this->createMock(UriInterface::class);
 
-        $client = $this->createMock(Client::class);
-        $client->expects($this->once())
-            ->method('create')
-            ->with($uri, $body)
-            ->willReturn($data);
+        $client = $this->createClient('create', [$uri, $body], $data);
 
         $collection = new Collection($client, $uri);
 
@@ -37,11 +34,7 @@ class CollectionTest extends TestCase
         $data = ['foo' => 'bar'];
         $uri = $this->createMock(UriInterface::class);
 
-        $client = $this->createMock(Client::class);
-        $client->expects($this->once())
-            ->method('read')
-            ->with($uri)
-            ->willReturn($data);
+        $client = $this->createClient('read', [$uri], $data);
 
         $collection = new Collection($client, $uri);
 
@@ -57,14 +50,33 @@ class CollectionTest extends TestCase
 
         $uri = (new Uri('/'))->withQuery((string) $filter);
 
-        $client = $this->createMock(Client::class);
-        $client->expects($this->once())
-            ->method('read')
-            ->with($uri)
-            ->willReturn($data);
+        $client = $this->createClient('read', [$uri], $data);
 
         $collection = new Collection($client, $uri);
 
         $this->assertEquals($data, $collection->read($filter));
+    }
+
+    /**
+     * @param string $method
+     * @param array $arguments
+     * @param array $return
+     *
+     * @return Client|\PHPUnit\Framework\MockObject\MockObject
+     */
+    protected function createClient(string $method, array $arguments, array $return)
+    {
+        $promise = $this->createMock(PromiseInterface::class);
+        $promise->expects($this->once())
+            ->method('wait')
+            ->willReturn($return);
+
+        $client = $this->createMock(Client::class);
+        $client->expects($this->once())
+            ->method($method)
+            ->with(...$arguments)
+            ->willReturn($promise);
+
+        return $client;
     }
 }

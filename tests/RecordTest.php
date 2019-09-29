@@ -4,6 +4,7 @@ namespace Anper\Jsonbox\Tests;
 
 use Anper\Jsonbox\Client;
 use Anper\Jsonbox\Record;
+use GuzzleHttp\Promise\PromiseInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\UriInterface;
 
@@ -36,11 +37,16 @@ class RecordTest extends TestCase
         $with = $arguments;
         \array_unshift($with, $uri);
 
+        $promise = $this->createMock(PromiseInterface::class);
+        $promise->expects($this->once())
+            ->method('wait')
+            ->willReturn($expected);
+
         $client = $this->createMock(Client::class);
         $client->expects($this->once())
             ->method($method)
             ->with(...$with)
-            ->willReturn($expected);
+            ->willReturn($promise);
 
         $record = new Record($client, $uri);
 

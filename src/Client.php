@@ -3,8 +3,11 @@
 namespace Anper\Jsonbox;
 
 use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\RequestOptions;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
 
 /**
@@ -38,46 +41,77 @@ class Client
      * @param UriInterface $uri
      * @param array $values
      *
-     * @return array
+     * @return PromiseInterface
      * @throws Exception
      */
-    public function create(UriInterface $uri, array $values): array
+    public function create(UriInterface $uri, array $values): PromiseInterface
     {
-        return $this->send('POST', $uri, $values);
+        return $this->send(
+            $this->createRequest('POST', $uri, $values)
+        );
     }
 
     /**
      * @param UriInterface $uri
      *
-     * @return array
+     * @return PromiseInterface
      * @throws Exception
      */
-    public function read(UriInterface $uri): array
+    public function read(UriInterface $uri): PromiseInterface
     {
-        return $this->send('GET', $uri);
+        return $this->send(
+            $this->createRequest('GET', $uri)
+        );
     }
 
     /**
      * @param UriInterface $uri
      * @param array $values
      *
-     * @return array
+     * @return PromiseInterface
      * @throws Exception
      */
-    public function update(UriInterface $uri, array $values): array
+    public function update(UriInterface $uri, array $values): PromiseInterface
     {
-        return $this->send('PUT', $uri, $values);
+        return $this->send(
+            $this->createRequest('PUT', $uri, $values)
+        );
     }
 
     /**
      * @param UriInterface $uri
      *
-     * @return array
+     * @return PromiseInterface
      * @throws Exception
      */
-    public function delete(UriInterface $uri): array
+    public function delete(UriInterface $uri): PromiseInterface
     {
-        return $this->send('DELETE', $uri);
+        return $this->send(
+            $this->createRequest('DELETE', $uri)
+        );
+    }
+
+    /**
+     * @param RequestInterface $request
+     *
+     * @return PromiseInterface
+     */
+    public function send(RequestInterface $request): PromiseInterface
+    {
+        return $this->client->sendAsync($request)
+            ->then(static function (ResponseInterface $response) {
+                return $response->getBody();
+            })
+            ->then(static function (string $body) {
+                return (array) \GuzzleHttp\json_decode($body, true);
+            })
+            ->otherwise(function ($value) {
+                if ($value instanceof \Throwable) {
+                    throw new Exception($value->getMessage());
+                }
+
+                throw new Exception((string) $value);
+            });
     }
 
     /**
@@ -85,30 +119,20 @@ class Client
      * @param UriInterface $uri
      * @param array $body
      *
-     * @return array
+     * @return RequestInterface
      * @throws Exception
      */
-    public function send(string $method, UriInterface $uri, array $body = []): array
+    public function createRequest(string $method, UriInterface $uri, array $body = []): RequestInterface
     {
-        $options = [
-            RequestOptions::JSON    => $body,
-            RequestOptions::HEADERS => [
-                'Accept' => 'application/json',
-            ],
-        ];
-
-        $options = \array_filter($options);
-
         try {
-            $response = $this->client->request($method, $uri, $options);
-        } catch (\Exception|GuzzleException $exception) {
-            throw new Exception($exception->getMessage(), 0, $exception);
-        }
-
-        try {
-            return (array) \GuzzleHttp\json_decode($response->getBody(), true);
+            $data = $body ? \GuzzleHttp\json_encode($body): null;
         } catch (\Exception $exception) {
-            throw new Exception($exception->getMessage(), 0, $exception);
+            throw new Exception($exception->getMessage());
         }
+
+        return new Request($method, $uri, [
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ], $data);
     }
 }

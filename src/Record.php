@@ -36,7 +36,9 @@ class Record
      */
     public function read(): array
     {
-        return $this->client->read($this->uri);
+        return $this->client
+            ->read($this->uri)
+            ->wait();
     }
 
     /**
@@ -47,7 +49,9 @@ class Record
      */
     public function update(array $values): array
     {
-        return $this->client->update($this->uri, $values);
+        return $this->client
+            ->update($this->uri, $values)
+            ->wait();
     }
 
     /**
@@ -56,6 +60,8 @@ class Record
      */
     public function delete(): array
     {
-        return $this->client->delete($this->uri);
+        return $this->client
+            ->delete($this->uri)
+            ->wait();
     }
 }

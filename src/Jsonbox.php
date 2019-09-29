@@ -71,9 +71,9 @@ class Jsonbox extends Collection
      */
     public function delete(Filter $filter): array
     {
-        return $this->client->delete(
-            $this->resolveUri($filter)
-        );
+        return $this->client
+            ->delete($this->resolveUri($filter))
+            ->wait();
     }
 
     /**
@@ -83,7 +83,9 @@ class Jsonbox extends Collection
      */
     protected function withPath(string $path): UriInterface
     {
-        $uri = $this->uri->getPath() . '/' . \trim($path. '/');
+        $uri = \trim($this->uri->getPath(), '/')
+            . '/'
+            . \trim($path. '/');
 
         return $this->uri->withPath($uri);
     }

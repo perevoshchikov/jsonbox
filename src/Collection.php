@@ -38,7 +38,9 @@ class Collection
      */
     public function create(array $values): array
     {
-        return $this->client->create($this->uri, $values);
+        return $this->client
+            ->create($this->uri, $values)
+            ->wait();
     }
 
     /**
@@ -49,7 +51,9 @@ class Collection
      */
     public function read(Filter $filter = null): array
     {
-        return $this->client->read($this->resolveUri($filter));
+        return $this->client
+            ->read($this->resolveUri($filter))
+            ->wait();
     }
 
     /**

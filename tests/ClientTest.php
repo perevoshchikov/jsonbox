@@ -7,7 +7,6 @@ use Anper\Jsonbox\Exception;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class ClientTest
@@ -18,68 +17,107 @@ class ClientTest extends TestCase
     public function testInvalidGuzzleClient(): void
     {
         $this->expectException(Exception::class);
+
         $guzzle = $this->createMock(ClientInterface::class);
 
-        $client = new Client($guzzle);
+        new Client($guzzle);
     }
 
     public function testSend(): void
     {
-        $uri    = new Uri('/');
-        $body   = ['foo' => 'bar'];
-        $data   = ['name' => 123];
-        $method = 'GET';
+        $client = new Client(
+            $this->getGuzzleClient()
+        );
 
-        $response = $this->createMock(ResponseInterface::class);
-        $response->expects($this->once())
-            ->method('getBody')
-            ->willReturn(\json_encode($data));
+        $request = $client->createRequest('GET', new Uri('/json'));
 
-        $guzzle = $this->getGuzzleClient();
-        $guzzle->expects($this->once())
-            ->method('request')
-            ->with($method, $uri, $this->contains($body))
-            ->willReturn($response);
-
-        $client = new Client($guzzle);
-
-        $this->assertEquals($data, $client->send($method, $uri, $body));
+        $this->assertIsArray($client->send($request)->wait());
     }
 
     public function testInvalidRequest(): void
     {
-        $message = 'exception message';
-
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage($message);
 
-        $guzzle = $this->getGuzzleClient();
-        $guzzle->expects($this->once())
-            ->method('request')
-            ->willThrowException(new \Exception($message));
+        $client = new Client(
+            $this->getGuzzleClient()
+        );
 
-        $client = new Client($guzzle);
+        $request = $client->createRequest('GET', new Uri('/status/400'));
 
-        $client->send('GET', new Uri('/'));
+        $client->send($request)->wait();
     }
 
     public function testInvalidJson(): void
     {
         $this->expectException(Exception::class);
 
-        $response = $this->createMock(ResponseInterface::class);;
-        $response->expects($this->once())
-            ->method('getBody')
-            ->willReturn('');
+        $client = new Client(
+            $this->getGuzzleClient()
+        );
 
-        $guzzle = $this->getGuzzleClient();
-        $guzzle->expects($this->once())
-            ->method('request')
-            ->willReturn($response);
+        $request = $client->createRequest('GET', new Uri('/xml'));
 
-        $client = new Client($guzzle);
+        $client->send($request)->wait();
+    }
 
-        $client->send('GET', new Uri('/'));
+    public function testCreateRequest(): void
+    {
+        $client = new Client(
+            $this->getGuzzleClient()
+        );
+
+        $uri = new Uri('/foo');
+        $body = ['name' => 'John'];
+
+        $request = $client->createRequest('GET', $uri, $body);
+
+        $this->assertEquals('GET', $request->getMethod());
+        $this->assertEquals($uri, $request->getUri());
+        $this->assertEquals(\json_encode($body), (string) $request->getBody());
+    }
+
+    public function testCreate(): void
+    {
+        $client = new Client(
+            $this->getGuzzleClient()
+        );
+
+        $body = ['name' => 'John'];
+
+        $result = $client->create(new Uri('/post'), $body)->wait();
+
+        $this->assertEquals($result['json'] ?? [], $body);
+    }
+
+    public function testRead(): void
+    {
+        $client = new Client(
+            $this->getGuzzleClient()
+        );
+
+        $this->assertIsArray($client->read(new Uri('/get'))->wait());
+    }
+
+    public function testDelete(): void
+    {
+        $client = new Client(
+            $this->getGuzzleClient()
+        );
+
+        $this->assertIsArray($client->delete(new Uri('/delete'))->wait());
+    }
+
+    public function testUpdate(): void
+    {
+        $client = new Client(
+            $this->getGuzzleClient()
+        );
+
+        $body = ['name' => 'John'];
+
+        $result = $client->update(new Uri('/put'), $body)->wait();
+
+        $this->assertEquals($result['json'] ?? [], $body);
     }
 
     /**
@@ -87,10 +125,9 @@ class ClientTest extends TestCase
      */
     protected function getGuzzleClient()
     {
-        $guzzle = $this->createMock(ClientInterface::class);
-        $guzzle->expects($this->once())
-            ->method('getConfig')
-            ->willReturn(true);
+        $guzzle = new \GuzzleHttp\Client([
+            'base_uri' => 'https://httpbin.org',
+        ]);
 
         return $guzzle;
     }
