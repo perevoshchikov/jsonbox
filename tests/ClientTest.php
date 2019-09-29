@@ -4,8 +4,8 @@ namespace Anper\Jsonbox\Tests;
 
 use Anper\Jsonbox\Client;
 use Anper\Jsonbox\Exception;
-use Anper\Jsonbox\Uri;
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 
@@ -25,13 +25,12 @@ class ClientTest extends TestCase
 
     public function testSend(): void
     {
-        $query  = ['q' => '1'];
-        $uri    = new Uri('/', $query);
+        $uri    = new Uri('/');
         $body   = ['foo' => 'bar'];
         $data   = ['name' => 123];
         $method = 'GET';
 
-        $response = $this->createMock(ResponseInterface::class);;
+        $response = $this->createMock(ResponseInterface::class);
         $response->expects($this->once())
             ->method('getBody')
             ->willReturn(\json_encode($data));
@@ -39,10 +38,7 @@ class ClientTest extends TestCase
         $guzzle = $this->getGuzzleClient();
         $guzzle->expects($this->once())
             ->method('request')
-            ->with($method, $uri->getPath(), $this->logicalAnd(
-                $this->contains($body),
-                $this->contains($query)
-            ))
+            ->with($method, $uri, $this->contains($body))
             ->willReturn($response);
 
         $client = new Client($guzzle);

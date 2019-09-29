@@ -5,6 +5,8 @@ namespace Anper\Jsonbox;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Anper\Jsonbox\Client as CrudClient;
+use GuzzleHttp\Psr7\Uri;
+use Psr\Http\Message\UriInterface;
 
 /**
  * Class Jsonbox
@@ -17,6 +19,7 @@ class Jsonbox extends Collection
      * @param ClientInterface|null $client
      *
      * @return static
+     * @throws Exception
      */
     public static function factory(string $boxId, ClientInterface $client = null): self
     {
@@ -37,7 +40,7 @@ class Jsonbox extends Collection
      */
     public function record(string $recordId): Record
     {
-        $uri = $this->uri->withPath($recordId);
+        $uri = $this->withPath($recordId);
 
         return new Record(
             $this->client,
@@ -52,7 +55,7 @@ class Jsonbox extends Collection
      */
     public function collection(string $collection): Collection
     {
-        $uri = $this->uri->withPath($collection);
+        $uri = $this->withPath($collection);
 
         return new Collection(
             $this->client,
@@ -71,5 +74,17 @@ class Jsonbox extends Collection
         return $this->client->delete(
             $this->resolveUri($filter)
         );
+    }
+
+    /**
+     * @param string $path
+     *
+     * @return UriInterface
+     */
+    protected function withPath(string $path): UriInterface
+    {
+        $uri = $this->uri->getPath() . '/' . \trim($path. '/');
+
+        return $this->uri->withPath($uri);
     }
 }

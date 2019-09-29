@@ -2,6 +2,8 @@
 
 namespace Anper\Jsonbox;
 
+use Psr\Http\Message\UriInterface;
+
 /**
  * Class Collection
  * @package Anper\Jsonbox
@@ -14,15 +16,15 @@ class Collection
     protected $client;
 
     /**
-     * @var Uri
+     * @var UriInterface
      */
     protected $uri;
 
     /**
      * @param Client $client
-     * @param Uri $uri
+     * @param UriInterface $uri
      */
-    public function __construct(Client $client, Uri $uri)
+    public function __construct(Client $client, UriInterface $uri)
     {
         $this->client = $client;
         $this->uri = $uri;
@@ -53,12 +55,12 @@ class Collection
     /**
      * @param Filter|null $filter
      *
-     * @return Uri
+     * @return UriInterface
      */
-    protected function resolveUri(Filter $filter = null): Uri
+    protected function resolveUri(Filter $filter = null): UriInterface
     {
         return $filter
-            ? $this->uri->withQuery($filter->toArray())
+            ? $this->uri->withQuery((string) $filter)
             : $this->uri;
     }
 }

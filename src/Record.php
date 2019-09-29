@@ -2,6 +2,8 @@
 
 namespace Anper\Jsonbox;
 
+use Psr\Http\Message\UriInterface;
+
 /**
  * Class Record
  * @package Anper\Jsonbox
@@ -14,15 +16,15 @@ class Record
     protected $client;
 
     /**
-     * @var Uri
+     * @var UriInterface
      */
     protected $uri;
 
     /**
      * @param Client $client
-     * @param Uri $uri
+     * @param UriInterface $uri
      */
-    public function __construct(Client $client, Uri $uri)
+    public function __construct(Client $client, UriInterface $uri)
     {
         $this->client = $client;
         $this->uri = $uri;

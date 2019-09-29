@@ -5,6 +5,7 @@ namespace Anper\Jsonbox;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
+use Psr\Http\Message\UriInterface;
 
 /**
  * Class Client
@@ -34,63 +35,62 @@ class Client
     }
 
     /**
-     * @param Uri $uri
+     * @param UriInterface $uri
      * @param array $values
      *
      * @return array
      * @throws Exception
      */
-    public function create(Uri $uri, array $values): array
+    public function create(UriInterface $uri, array $values): array
     {
         return $this->send('POST', $uri, $values);
     }
 
     /**
-     * @param Uri $uri
+     * @param UriInterface $uri
      *
      * @return array
      * @throws Exception
      */
-    public function read(Uri $uri): array
+    public function read(UriInterface $uri): array
     {
         return $this->send('GET', $uri);
     }
 
     /**
-     * @param Uri $uri
+     * @param UriInterface $uri
      * @param array $values
      *
      * @return array
      * @throws Exception
      */
-    public function update(Uri $uri, array $values): array
+    public function update(UriInterface $uri, array $values): array
     {
         return $this->send('PUT', $uri, $values);
     }
 
     /**
-     * @param Uri $uri
+     * @param UriInterface $uri
      *
      * @return array
      * @throws Exception
      */
-    public function delete(Uri $uri): array
+    public function delete(UriInterface $uri): array
     {
         return $this->send('DELETE', $uri);
     }
 
     /**
      * @param string $method
-     * @param Uri $uri
+     * @param UriInterface $uri
      * @param array $body
      *
      * @return array
      * @throws Exception
      */
-    public function send(string $method, Uri $uri, array $body = []): array
+    public function send(string $method, UriInterface $uri, array $body = []): array
     {
         $options = [
-            RequestOptions::QUERY   => $uri->getQuery(),
             RequestOptions::JSON    => $body,
             RequestOptions::HEADERS => [
                 'Accept' => 'application/json',
@@ -100,7 +100,7 @@ class Client
         $options = \array_filter($options);
 
         try {
-            $response = $this->client->request($method, $uri->getPath(), $options);
+            $response = $this->client->request($method, $uri, $options);
         } catch (\Exception|GuzzleException $exception) {
             throw new Exception($exception->getMessage(), 0, $exception);
         }

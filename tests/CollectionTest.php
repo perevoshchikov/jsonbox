@@ -5,8 +5,9 @@ namespace Anper\Jsonbox\Tests;
 use Anper\Jsonbox\Client;
 use Anper\Jsonbox\Collection;
 use Anper\Jsonbox\Filter;
-use Anper\Jsonbox\Uri;
+use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\UriInterface;
 
 /**
  * Class CollectionTest
@@ -18,7 +19,7 @@ class CollectionTest extends TestCase
     {
         $body = ['name' => 'John'];
         $data = ['foo' => 'bar'];
-        $uri = $this->createMock(Uri::class);
+        $uri = $this->createMock(UriInterface::class);
 
         $client = $this->createMock(Client::class);
         $client->expects($this->once())
@@ -34,7 +35,7 @@ class CollectionTest extends TestCase
     public function testRead(): void
     {
         $data = ['foo' => 'bar'];
-        $uri = $this->createMock(Uri::class);
+        $uri = $this->createMock(UriInterface::class);
 
         $client = $this->createMock(Client::class);
         $client->expects($this->once())
@@ -54,7 +55,7 @@ class CollectionTest extends TestCase
         $filter = new Filter();
         $filter->equalTo('name', 'John');
 
-        $uri = (new Uri('/'))->withQuery($filter->toArray());
+        $uri = (new Uri('/'))->withQuery((string) $filter);
 
         $client = $this->createMock(Client::class);
         $client->expects($this->once())

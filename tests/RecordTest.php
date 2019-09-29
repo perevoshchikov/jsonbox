@@ -4,8 +4,8 @@ namespace Anper\Jsonbox\Tests;
 
 use Anper\Jsonbox\Client;
 use Anper\Jsonbox\Record;
-use Anper\Jsonbox\Uri;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\UriInterface;
 
 /**
  * Class RecordTest
@@ -31,7 +31,7 @@ class RecordTest extends TestCase
     {
         $expected = ['foo' => 'bar'];
 
-        $uri = $this->createMock(Uri::class);
+        $uri = $this->createMock(UriInterface::class);
 
         $with = $arguments;
         \array_unshift($with, $uri);
