@@ -16,6 +16,11 @@ use Psr\Http\Message\UriInterface;
  */
 class Client
 {
+    public const METHOD_GET    = 'GET';
+    public const METHOD_POST   = 'POST';
+    public const METHOD_PUT    = 'PUT';
+    public const METHOD_DELETE = 'DELETE';
+
     /**
      * @var ClientInterface
      */
@@ -47,7 +52,7 @@ class Client
     public function create(UriInterface $uri, array $values): PromiseInterface
     {
         return $this->send(
-            $this->createRequest('POST', $uri, $values)
+            $this->createRequest(static::METHOD_POST, $uri, $values)
         );
     }
 
@@ -60,7 +65,7 @@ class Client
     public function read(UriInterface $uri): PromiseInterface
     {
         return $this->send(
-            $this->createRequest('GET', $uri)
+            $this->createRequest(static::METHOD_GET, $uri)
         );
     }
 
@@ -74,7 +79,7 @@ class Client
     public function update(UriInterface $uri, array $values): PromiseInterface
     {
         return $this->send(
-            $this->createRequest('PUT', $uri, $values)
+            $this->createRequest(static::METHOD_PUT, $uri, $values)
         );
     }
 
@@ -87,7 +92,7 @@ class Client
     public function delete(UriInterface $uri): PromiseInterface
     {
         return $this->send(
-            $this->createRequest('DELETE', $uri)
+            $this->createRequest(static::METHOD_DELETE, $uri)
         );
     }
 
