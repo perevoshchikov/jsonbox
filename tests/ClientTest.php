@@ -15,14 +15,6 @@ use Psr\Http\Message\ResponseInterface;
  */
 class ClientTest extends TestCase
 {
-    public function testSetAndGetGuzzleClient(): void
-    {
-        $guzzle = $this->getGuzzleClient();
-        $client = new Client($guzzle);
-
-        $this->assertEquals($client->getClient(), $guzzle);
-    }
-
     public function testInvalidGuzzleClient(): void
     {
         $this->expectException(Exception::class);

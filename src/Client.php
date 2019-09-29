@@ -34,14 +34,6 @@ class Client
     }
 
     /**
-     * @return ClientInterface
-     */
-    public function getClient(): ClientInterface
-    {
-        return $this->client;
-    }
-
-    /**
      * @param Uri $uri
      * @param array $values
      *
