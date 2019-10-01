@@ -63,7 +63,7 @@ $response = $jsonbox->collection('users')->read($filter);
 $response = $jsonbox->record('5d776a25fd6d3d6cb1d45c51')
     ->update(['name' => 'Arya Stark']);
 
-// Update multiple records
+// Update multiple records (async request for every record)
 $response = $jsonbox->update([
     '5d776b75fd6d3d6cb1d45c52' => ['name' => 'Daenerys Targaryen'],
     '5d776b75fd6d3d6cb1d45c53' => ['name' => 'Arya Stark'],
@@ -75,7 +75,7 @@ $response = $jsonbox->update([
 // Delete a record
 $response = $jsonbox->record('5d776a25fd6d3d6cb1d45c51')->delete();
 
-// Delete multiple records
+// Delete multiple records (async request for every record)
 $response = $jsonbox->delete([
     '5d776b75fd6d3d6cb1d45c52',
     '5d776b75fd6d3d6cb1d45c53',
