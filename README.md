@@ -2,7 +2,7 @@
 
 [![Software License][ico-license]](LICENSE.md)
 [![Latest Version on Packagist][ico-version]][link-packagist]
-![Build Status](https://github.com/perevoshchikov/jsonbox/workflows/Tests/badge.svg)
+[![Build Status][ico-ga]][link-ga]
 
 ## Install
 
@@ -26,5 +26,7 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 
 [ico-version]: https://img.shields.io/packagist/v/anper/jsonbox.svg
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg
+[ico-ga]: https://github.com/perevoshchikov/jsonbox/workflows/Tests/badge.svg
 
 [link-packagist]: https://packagist.org/packages/anper/jsonbox
+[link-ga]: https://github.com/perevoshchikov/jsonbox/actions
