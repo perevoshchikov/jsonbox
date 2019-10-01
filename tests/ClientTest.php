@@ -5,8 +5,11 @@ namespace Anper\Jsonbox\Tests;
 use Anper\Jsonbox\Client;
 use Anper\Jsonbox\Exception;
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
+use function Anper\Jsonbox\json_request;
 
 /**
  * Class ClientTest
@@ -25,11 +28,9 @@ class ClientTest extends TestCase
 
     public function testSend(): void
     {
-        $client = new Client(
-            $this->getGuzzleClient()
-        );
+        $client = $this->getClient();
 
-        $request = $client->createRequest('GET', new Uri('/json'));
+        $request = new Request('GET', new Uri('/json'));
 
         $this->assertIsArray($client->send($request)->wait());
     }
@@ -38,11 +39,9 @@ class ClientTest extends TestCase
     {
         $this->expectException(Exception::class);
 
-        $client = new Client(
-            $this->getGuzzleClient()
-        );
+        $client = $this->getClient();
 
-        $request = $client->createRequest('GET', new Uri('/status/400'));
+        $request = new Request('GET', new Uri('/status/400'));
 
         $client->send($request)->wait();
     }
@@ -51,37 +50,16 @@ class ClientTest extends TestCase
     {
         $this->expectException(Exception::class);
 
-        $client = new Client(
-            $this->getGuzzleClient()
-        );
+        $client = $this->getClient();
 
-        $request = $client->createRequest('GET', new Uri('/xml'));
+        $request = new Request('GET', new Uri('/xml'));
 
         $client->send($request)->wait();
     }
 
-    public function testCreateRequest(): void
-    {
-        $client = new Client(
-            $this->getGuzzleClient()
-        );
-
-        $uri = new Uri('/foo');
-        $body = ['name' => 'John'];
-
-        $request = $client->createRequest('GET', $uri, $body);
-
-        $this->assertEquals('GET', $request->getMethod());
-        $this->assertEquals($uri, $request->getUri());
-        $this->assertEquals(\json_encode($body), (string) $request->getBody());
-    }
-
     public function testCreate(): void
     {
-        $client = new Client(
-            $this->getGuzzleClient()
-        );
-
+        $client = $this->getClient();
         $body = ['name' => 'John'];
 
         $result = $client->create(new Uri('/post'), $body)->wait();
@@ -91,27 +69,21 @@ class ClientTest extends TestCase
 
     public function testRead(): void
     {
-        $client = new Client(
-            $this->getGuzzleClient()
-        );
+        $client = $this->getClient();
 
         $this->assertIsArray($client->read(new Uri('/get'))->wait());
     }
 
     public function testDelete(): void
     {
-        $client = new Client(
-            $this->getGuzzleClient()
-        );
+        $client = $this->getClient();
 
         $this->assertIsArray($client->delete(new Uri('/delete'))->wait());
     }
 
     public function testUpdate(): void
     {
-        $client = new Client(
-            $this->getGuzzleClient()
-        );
+        $client = $this->getClient();
 
         $body = ['name' => 'John'];
 
@@ -123,12 +95,66 @@ class ClientTest extends TestCase
     /**
      * @return ClientInterface|\PHPUnit\Framework\MockObject\MockObject
      */
-    protected function getGuzzleClient()
+    protected function getClient()
     {
         $guzzle = new \GuzzleHttp\Client([
             'base_uri' => 'https://httpbin.org',
         ]);
 
-        return $guzzle;
+        return new Client($guzzle);
+    }
+
+    public function testBatch()
+    {
+        $client = $this->getClient();
+
+        $data = [
+            ['name' => 'Foo'],
+            ['name' => 'Bar'],
+        ];
+
+        $request1 = json_request('POST', new Uri('/post'), $data[0]);
+        $request2 = json_request('POST', new Uri('/post'), $data[1]);
+        $request3 = json_request('GET', new Uri('/status/400'));
+
+        $batch = [$request1, $request2, $request3];
+
+        $result = $client->batch($batch)->wait();
+
+        $this->assertEquals(
+            $result[0]['state'] ?? '',
+            PromiseInterface::FULFILLED,
+            'First async request failed'
+        );
+
+        $this->assertEquals(
+            $result[1]['state'] ?? '',
+            PromiseInterface::FULFILLED,
+            'Second async request failed'
+        );
+
+        $this->assertEquals(
+            $result[2]['state'] ?? '',
+            PromiseInterface::REJECTED,
+            'Invalid async request is not failed'
+        );
+
+        $this->assertEquals(
+            $result[0]['value']['json'] ?? [],
+            $data[0],
+            'First async request return invalid data'
+        );
+
+        $this->assertEquals(
+            $result[1]['value']['json'] ?? [],
+            $data[1],
+            'Second async request return invalid data'
+        );
+
+        $this->assertInstanceOf(
+            Exception::class,
+            $result[2]['value'],
+            'Expected invalid async request return exception'
+        );
     }
 }

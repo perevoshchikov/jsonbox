@@ -4,7 +4,6 @@ namespace Anper\Jsonbox;
 
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Promise\PromiseInterface;
-use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -51,9 +50,7 @@ class Client
      */
     public function create(UriInterface $uri, array $values): PromiseInterface
     {
-        return $this->send(
-            $this->createRequest(static::METHOD_POST, $uri, $values)
-        );
+        return $this->raw(static::METHOD_POST, $uri, $values);
     }
 
     /**
@@ -64,9 +61,7 @@ class Client
      */
     public function read(UriInterface $uri): PromiseInterface
     {
-        return $this->send(
-            $this->createRequest(static::METHOD_GET, $uri)
-        );
+        return $this->raw(static::METHOD_GET, $uri);
     }
 
     /**
@@ -78,9 +73,7 @@ class Client
      */
     public function update(UriInterface $uri, array $values): PromiseInterface
     {
-        return $this->send(
-            $this->createRequest(static::METHOD_PUT, $uri, $values)
-        );
+        return $this->raw(static::METHOD_PUT, $uri, $values);
     }
 
     /**
@@ -91,32 +84,68 @@ class Client
      */
     public function delete(UriInterface $uri): PromiseInterface
     {
-        return $this->send(
-            $this->createRequest(static::METHOD_DELETE, $uri)
-        );
+        return $this->raw(static::METHOD_DELETE, $uri);
     }
 
     /**
      * @param RequestInterface $request
+     * @param bool $async
      *
      * @return PromiseInterface
      */
-    public function send(RequestInterface $request): PromiseInterface
+    public function send(RequestInterface $request, bool $async = false): PromiseInterface
     {
-        return $this->client->sendAsync($request)
+        return $this->client->sendAsync($request, [
+                RequestOptions::SYNCHRONOUS => $async === false
+            ])
             ->then(static function (ResponseInterface $response) {
-                return $response->getBody();
+                return (array) \GuzzleHttp\json_decode($response->getBody(), true);
             })
-            ->then(static function (string $body) {
-                return (array) \GuzzleHttp\json_decode($body, true);
-            })
-            ->otherwise(function ($value) {
-                if ($value instanceof \Throwable) {
-                    throw new Exception($value->getMessage());
-                }
+            ->otherwise(static function ($value) {
+                $message = $value instanceof \Throwable
+                    ? $value->getMessage()
+                    : (string) $value;
 
-                throw new Exception((string) $value);
+                throw new Exception($message);
             });
+    }
+
+    /**
+     * @param iterable|RequestInterface[] $requests
+     * @param int $concurrency
+     *
+     * @return PromiseInterface
+     */
+    public function batch(iterable $requests, int $concurrency = 10): PromiseInterface
+    {
+        $generator = function (&$requests) {
+            foreach ($requests as $id => $request) {
+                yield $id => $this->send($request, true);
+            }
+        };
+
+        $results = [];
+
+        $promise = \GuzzleHttp\Promise\each_limit(
+            $generator($requests),
+            $concurrency,
+            static function ($value, $idx) use (&$results) {
+                $results[$idx] = [
+                    'state' => PromiseInterface::FULFILLED,
+                    'value' => $value,
+                ];
+            },
+            static function ($reason, $idx) use (&$results) {
+                $results[$idx] = [
+                    'state' => PromiseInterface::REJECTED,
+                    'value' => $reason,
+                ];
+            }
+        );
+
+        return $promise->then(static function () use (&$results) {
+            return $results;
+        });
     }
 
     /**
@@ -124,20 +153,13 @@ class Client
      * @param UriInterface $uri
      * @param array $body
      *
-     * @return RequestInterface
+     * @return PromiseInterface
      * @throws Exception
      */
-    public function createRequest(string $method, UriInterface $uri, array $body = []): RequestInterface
+    protected function raw(string $method, UriInterface $uri, array $body = []): PromiseInterface
     {
-        try {
-            $data = $body ? \GuzzleHttp\json_encode($body): null;
-        } catch (\Exception $exception) {
-            throw new Exception($exception->getMessage());
-        }
-
-        return new Request($method, $uri, [
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json',
-        ], $data);
+        return $this->send(
+            json_request($method, $uri, $body)
+        );
     }
 }

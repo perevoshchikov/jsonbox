@@ -52,7 +52,7 @@ class Collection
     public function read(Filter $filter = null): array
     {
         return $this->client
-            ->read($this->resolveUri($filter))
+            ->read($this->withFilter($filter))
             ->wait();
     }
 
@@ -61,7 +61,7 @@ class Collection
      *
      * @return UriInterface
      */
-    protected function resolveUri(Filter $filter = null): UriInterface
+    protected function withFilter(Filter $filter = null): UriInterface
     {
         return $filter
             ? $this->uri->withQuery((string) $filter)

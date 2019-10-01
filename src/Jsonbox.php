@@ -2,11 +2,12 @@
 
 namespace Anper\Jsonbox;
 
+use Anper\Jsonbox\Batch\DeleteBatch;
+use Anper\Jsonbox\Batch\UpdateBatch;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Anper\Jsonbox\Client as CrudClient;
 use GuzzleHttp\Psr7\Uri;
-use Psr\Http\Message\UriInterface;
 
 /**
  * Class Jsonbox
@@ -40,7 +41,7 @@ class Jsonbox extends Collection
      */
     public function record(string $recordId): Record
     {
-        $uri = $this->withPath($recordId);
+        $uri = \Anper\Jsonbox\path_push($this->uri, $recordId);
 
         return new Record(
             $this->client,
@@ -55,7 +56,7 @@ class Jsonbox extends Collection
      */
     public function collection(string $collection): Collection
     {
-        $uri = $this->withPath($collection);
+        $uri = \Anper\Jsonbox\path_push($this->uri, $collection);
 
         return new Collection(
             $this->client,
@@ -64,29 +65,55 @@ class Jsonbox extends Collection
     }
 
     /**
-     * @param Filter $filter
+     * @param Filter|string[] $recordsOrFilter
+     * @param int $concurrency
      *
      * @return array
      * @throws Exception
      */
-    public function delete(Filter $filter): array
+    public function delete($recordsOrFilter, int $concurrency = 10): array
     {
-        return $this->client
-            ->delete($this->resolveUri($filter))
-            ->wait();
+        if (\is_array($recordsOrFilter)) {
+            $batch = new DeleteBatch($this->uri, $recordsOrFilter);
+
+            return $this->client
+                ->batch($batch, $concurrency)
+                ->wait();
+        }
+
+        if ($recordsOrFilter instanceof Filter) {
+            return $this->client
+                ->delete($this->withFilter($recordsOrFilter))
+                ->wait();
+        }
+
+        throw new Exception(\sprintf(
+            'Expected array or instance of \Anper\Jsonbox\Filter, given `%s`',
+            \is_object($recordsOrFilter)
+                ? \get_class($recordsOrFilter)
+                : \gettype($recordsOrFilter)
+        ));
     }
 
     /**
-     * @param string $path
+     * @param array $values
+     * @param int $concurrency
      *
-     * @return UriInterface
+     * Example: $values = [
+     *   '5d8fbea4586bc10117c85fbb' => ['name' => 'John'],
+     *    ...
+     * ]
+     *
+     * @return array
+     * @throws Exception
+     *
      */
-    protected function withPath(string $path): UriInterface
+    public function update(array $values, int $concurrency = 10): array
     {
-        $uri = \trim($this->uri->getPath(), '/')
-            . '/'
-            . \trim($path. '/');
+        $batch = new UpdateBatch($this->uri, $values);
 
-        return $this->uri->withPath($uri);
+        return $this->client
+            ->batch($batch, $concurrency)
+            ->wait();
     }
 }

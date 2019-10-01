@@ -62,7 +62,7 @@ class CollectionTest extends TestCase
      * @param array $arguments
      * @param array $return
      *
-     * @return Client|\PHPUnit\Framework\MockObject\MockObject
+     * @return Client
      */
     protected function createClient(string $method, array $arguments, array $return)
     {
