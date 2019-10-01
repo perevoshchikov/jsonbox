@@ -1,9 +1,10 @@
 {
     "name": "anper/jsonbox",
     "type": "library",
-    "description": "",
+    "description": "PHP wrapper for https://jsonbox.io",
     "keywords": [
-        "jsonbox"
+        "jsonbox",
+        "json"
     ],
     "homepage": "https://github.com/perevoshchikov/jsonbox",
     "license": "MIT",
