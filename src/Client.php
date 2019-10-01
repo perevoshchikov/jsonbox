@@ -129,13 +129,13 @@ class Client
         $promise = \GuzzleHttp\Promise\each_limit(
             $generator($requests),
             $concurrency,
-            static function ($value, $idx) use (&$results) {
+            function ($value, $idx) use (&$results) {
                 $results[$idx] = [
                     'state' => PromiseInterface::FULFILLED,
                     'value' => $value,
                 ];
             },
-            static function ($reason, $idx) use (&$results) {
+            function ($reason, $idx) use (&$results) {
                 $results[$idx] = [
                     'state' => PromiseInterface::REJECTED,
                     'value' => $reason,

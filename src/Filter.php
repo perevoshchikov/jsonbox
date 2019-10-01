@@ -14,17 +14,17 @@ class Filter
     protected $query = [];
 
     /**
-     * @var int
+     * @var int|null
      */
     protected $limit;
 
     /**
-     * @var int
+     * @var int|null
      */
     protected $skip;
 
     /**
-     * @var string
+     * @var string|null
      */
     protected $sort;
 
@@ -47,7 +47,7 @@ class Filter
      */
     public function greaterThan(string $field, int $value): self
     {
-        return $this->where($field, $value, ':>');
+        return $this->where($field, (string) $value, ':>');
     }
 
     /**
@@ -58,7 +58,7 @@ class Filter
      */
     public function greaterThanOrEqual(string $field, int $value): self
     {
-        return $this->where($field, $value, ':>=');
+        return $this->where($field, (string) $value, ':>=');
     }
 
     /**
@@ -69,7 +69,7 @@ class Filter
      */
     public function lessThan(string $field, int $value): self
     {
-        return $this->where($field, $value, ':<');
+        return $this->where($field, (string) $value, ':<');
     }
 
     /**
@@ -80,7 +80,7 @@ class Filter
      */
     public function lessThanOrEqual(string $field, int $value): self
     {
-        return $this->where($field, $value, ':<=');
+        return $this->where($field, (string) $value, ':<=');
     }
 
     /**
@@ -108,7 +108,7 @@ class Filter
     }
 
     /**
-     * @param int $limit
+     * @param int|null $limit
      *
      * @return $this
      */
@@ -122,7 +122,7 @@ class Filter
     }
 
     /**
-     * @param int $skip
+     * @param int|null $skip
      *
      * @return $this
      */
@@ -136,7 +136,7 @@ class Filter
     }
 
     /**
-     * @param string $field
+     * @param string|null $field
      *
      * @return $this
      */
