@@ -4,6 +4,8 @@
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Build Status][ico-ga]][link-ga]
 
+PHP wrapper / Client SDK for [jsonbox](https://github.com/vasanthv/jsonbox)
+
 ## Install
 
 ``` bash
