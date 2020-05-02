@@ -87,6 +87,13 @@ $response = $jsonbox->delete([
 $response = $jsonbox->delete($filter);
 ```
 
+**Protected Box**
+
+```php
+// An API-KEY should be a valid GUID/UUID
+$protectedJsonbox = $jsonbox->withApiKey('API_KEY');
+```
+
 ## Test
 
 ``` bash
