@@ -98,6 +98,27 @@ class JsonboxTest extends TestCase
         $jsonbox->delete(null);
     }
 
+    public function testSetApiKey(): void
+    {
+        $secret = 'secret';
+
+        $client = $this->createMock(Client::class);
+        $client->expects($this->once())
+            ->method('setOptions')
+            ->with([
+                'headers' => [
+                    'X-API-KEY' => $secret,
+                ]
+            ]);
+
+        $uri = $this->createMock(UriInterface::class);
+
+        $jsonbox1 = new Jsonbox($client, $uri);
+        $jsonbox2 = $jsonbox1->withApiKey($secret);
+
+        $this->assertNotEquals(\spl_object_hash($jsonbox1), \spl_object_hash($jsonbox2));
+    }
+
     /**
      * @param $return
      *

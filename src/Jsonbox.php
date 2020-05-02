@@ -35,6 +35,23 @@ class Jsonbox extends Collection
     }
 
     /**
+     * @param string $key
+     *
+     * @return $this
+     */
+    public function withApiKey(string $key): self
+    {
+        $copy = clone $this;
+        $copy->client->setOptions([
+            'headers' => [
+                'X-API-KEY' => $key,
+            ]
+        ]);
+
+        return $copy;
+    }
+
+    /**
      * @param string $recordId
      *
      * @return Record
@@ -115,5 +132,10 @@ class Jsonbox extends Collection
         return $this->client
             ->batch($batch, $concurrency)
             ->wait();
+    }
+
+    public function __clone()
+    {
+        $this->client = clone $this->client;
     }
 }
