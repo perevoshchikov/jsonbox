@@ -26,6 +26,11 @@ class Client
     protected $client;
 
     /**
+     * @var array
+     */
+    protected $options = [];
+
+    /**
      * @param ClientInterface $client
      *
      * @throws Exception
@@ -39,6 +44,34 @@ class Client
         }
 
         $this->client = $client;
+    }
+
+    /**
+     * @return ClientInterface
+     */
+    public function getClient(): ClientInterface
+    {
+        return $this->client;
+    }
+
+    /**
+     * @return array
+     */
+    public function getOptions(): array
+    {
+        return $this->options;
+    }
+
+    /**
+     * @param array $options
+     *
+     * @return Client
+     */
+    public function setOptions(array $options): self
+    {
+        $this->options = $options;
+
+        return $this;
     }
 
     /**
@@ -95,9 +128,9 @@ class Client
      */
     public function send(RequestInterface $request, bool $async = false): PromiseInterface
     {
-        return $this->client->sendAsync($request, [
+        return $this->client->sendAsync($request, \array_merge($this->options, [
                 RequestOptions::SYNCHRONOUS => $async === false
-            ])
+            ]))
             ->then(static function (ResponseInterface $response) {
                 return (array) \GuzzleHttp\json_decode($response->getBody(), true);
             })

@@ -93,7 +93,8 @@ class ClientTest extends TestCase
     }
 
     /**
-     * @return ClientInterface|\PHPUnit\Framework\MockObject\MockObject
+     * @return Client
+     * @throws Exception
      */
     protected function getClient()
     {
@@ -156,5 +157,34 @@ class ClientTest extends TestCase
             $result[2]['value'],
             'Expected invalid async request return exception'
         );
+    }
+
+    public function testSetAndGetOptions(): void
+    {
+        $options = ['foo' => 'bar'];
+
+        $client = $this->getClient();
+
+        $this->assertEquals([], $client->getOptions());
+
+        $client->setOptions($options);
+
+        $this->assertEquals($options, $client->getOptions());
+    }
+
+    public function testSendWithOptions(): void
+    {
+        $client = $this->getClient();
+        $client->setOptions([
+            'headers' => [
+                'X-Assert-Header' => 'hello',
+            ]
+        ]);
+
+        $request = new Request('GET', new Uri('/headers'));
+        $response = $client->send($request)->wait();
+
+        $this->assertTrue(isset($response['headers']['X-Assert-Header']));
+        $this->assertEquals($response['headers']['X-Assert-Header'], 'hello');
     }
 }
