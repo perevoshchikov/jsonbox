@@ -10,6 +10,8 @@ use Psr\Http\Message\UriInterface;
 /**
  * Class UpdateRequest
  * @package Anper\Jsonbox\Generator
+ *
+ * @implements \IteratorAggregate<RequestInterface>
  */
 class DeleteBatch implements \IteratorAggregate
 {

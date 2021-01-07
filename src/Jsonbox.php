@@ -13,7 +13,7 @@ use GuzzleHttp\Psr7\Uri;
  * Class Jsonbox
  * @package Anper\Jsonbox
  */
-class Jsonbox extends Collection
+final class Jsonbox extends Collection
 {
     /**
      * @param string $boxId
@@ -104,6 +104,7 @@ class Jsonbox extends Collection
                 ->wait();
         }
 
+        /** @phpstan-ignore-next-line */
         throw new Exception(\sprintf(
             'Expected array or instance of \Anper\Jsonbox\Filter, given `%s`',
             \is_object($recordsOrFilter)
